@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>麦门回忆卡 · mcd-memory-card</title>
+<style>
+  :root{
+    --bg:#f5f2ec;
+    --card:#ffffff;
+    --ink:#1b1b1b;
+    --ink2:#5b5b5b;
+    --ink3:#8a8a8a;
+    --line:#e4ded4;
+    --accent:#c8102e;
+    --accent-soft:#fdeef0;
+    --warn:#8a6d1f;
+    --warn-soft:#fdf6e3;
+    --unknown:#6b6b6b;
+    --unknown-soft:#f0efed;
+    --radius:16px;
+    --shadow:0 1px 2px rgba(0,0,0,.04),0 6px 20px rgba(0,0,0,.05);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    padding:0 0 64px;
+  }
+  .wrap{max-width:720px;margin:0 auto;padding:0 16px}
+
+  header.top{padding:28px 0 18px}
+  .brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  h1{font-size:24px;margin:0;letter-spacing:-.3px}
+  .brand small{color:var(--ink3);font-size:12px;letter-spacing:.4px}
+  .sub{color:var(--ink2);font-size:13px;margin:8px 0 0}
+
+  .modebar{
+    display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 6px;
+  }
+  button{
+    font:inherit;font-size:13px;cursor:pointer;
+    border:1px solid var(--line);background:var(--card);color:var(--ink);
+    padding:8px 13px;border-radius:999px;transition:.15s;
+  }
+  button:hover{border-color:#cfc7ba}
+  button.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
+  button.primary:hover{opacity:.88}
+  button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  .banner{
+    border-radius:12px;padding:11px 14px;font-size:12.5px;margin:14px 0;
+    background:var(--warn-soft);color:var(--warn);border:1px solid #f0e3bd;
+  }
+  .banner.demo{background:var(--accent-soft);color:var(--accent);border-color:#f6d3d8;font-weight:600}
+  .banner.err{background:#fdeeee;color:#a32020;border-color:#f3cccc}
+  .banner code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+
+  .empty{
+    text-align:center;padding:44px 20px;color:var(--ink3);font-size:14px;
+    background:var(--card);border-radius:var(--radius);border:1px dashed var(--line);
+  }
+
+  .cards{display:flex;flex-direction:column;gap:14px;margin-top:16px}
+  .card{
+    background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:20px 20px 14px;border:1px solid rgba(0,0,0,.03);
+    animation:in .35s ease both;
+  }
+  @keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .card h2{
+    font-size:14px;margin:0 0 12px;color:var(--ink2);font-weight:600;
+    letter-spacing:.3px;display:flex;align-items:center;gap:8px;
+  }
+  .card h2::before{
+    content:"";width:3px;height:14px;border-radius:2px;background:var(--accent);
+  }
+  .big{font-size:30px;font-weight:700;letter-spacing:-.5px;line-height:1.2}
+  .big .unit{font-size:14px;font-weight:600;color:var(--ink3);margin-left:3px}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:10px;margin-top:4px}
+  .cell{background:#faf8f5;border-radius:10px;padding:10px 12px}
+  .cell .k{font-size:11px;color:var(--ink3);letter-spacing:.2px}
+  .cell .v{font-size:17px;font-weight:600;margin-top:2px}
+
+  .rows{margin-top:4px}
+  .row{
+    display:flex;justify-content:space-between;gap:12px;align-items:baseline;
+    padding:9px 0;border-bottom:1px solid #f2efe9;font-size:13.5px;
+  }
+  .row:last-child{border-bottom:none}
+  .row .l{color:var(--ink2);flex:1;min-width:0;overflow-wrap:anywhere}
+  .row .r{color:var(--ink);font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+
+  .tag{
+    display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;
+    background:var(--unknown-soft);color:var(--unknown);font-weight:600;
+  }
+  .tag.ok{background:#eaf6ee;color:#2b6b41}
+  .tag.cancel{background:#fdeeee;color:#a32020}
+  .tag.refund{background:#eef2fb;color:#33518c}
+  .tag.unknown{background:var(--unknown-soft);color:var(--unknown)}
+
+  .known-unknown{
+    margin-top:12px;padding:10px 12px;border-radius:10px;
+    background:var(--unknown-soft);font-size:12px;color:var(--ink2);
+  }
+  .known-unknown ul{margin:6px 0 0;padding-left:18px}
+  .known-unknown li{margin:3px 0}
+
+  .cover{
+    margin-top:14px;padding-top:11px;border-top:1px dashed var(--line);
+    font-size:11.5px;color:var(--ink3);letter-spacing:.1px;
+  }
+  .cover b{color:var(--ink2);font-weight:600}
+
+  .notarget{margin-top:10px;font-size:11.5px;color:var(--ink3);font-style:italic}
+
+  footer{margin-top:26px;font-size:11.5px;color:var(--ink3);line-height:1.8}
+  footer a{color:var(--ink2)}
+
+  @media (max-width:480px){
+    .wrap{padding:0 12px}
+    h1{font-size:20px}
+    .card{padding:16px 15px 12px;border-radius:14px}
+    .big{font-size:26px}
+    .grid{grid-template-columns:repeat(2,1fr)}
+    .modebar button{flex:1 1 auto;text-align:center}
+  }
+  @media print{
+    body{background:#fff;padding:0}
+    .modebar,header.top .sub,footer .noprint{display:none}
+    .card{box-shadow:none;border:1px solid var(--line);break-inside:avoid;animation:none}
+    .banner{border:1px solid var(--line)}
+    .banner.demo{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <h1>麦门回忆卡</h1>
+      <small>mcd-memory-card</small>
+    </div>
+    <p class="sub">把你的麦当劳记录整理成几张卡片。每张都写清数据覆盖到哪，不确定的地方直接写「未知」。</p>
+  </header>
+
+  <div class="modebar">
+    <button id="btnDemoFull" class="on">示例数据 · 完整</button>
+    <button id="btnDemoPartial">示例数据 · 部分</button>
+    <button id="btnDemoEmpty">示例数据 · 空</button>
+    <button id="btnImport">导入 JSON</button>
+    <button id="btnPrint">打印卡片</button>
+    <button id="btnClear">清除导入</button>
+  </div>
+
+  <input type="file" id="fileInput" accept=".json,application/json" style="display:none">
+
+  <div id="banners"></div>
+  <div id="stage"></div>
+
+  <footer>
+    <div class="noprint">
+      <div>本页面为纯静态单文件，<b>不联网、不上传、不存储任何令牌</b>，不直接连接麦当劳服务。</div>
+      <div>页面上方三种示例均为虚构数据。你的真实数据，需要在 WorkBuddy 里连上麦当劳后由 Skill 取回，导出成 JSON 再从这里导入。</div>
+      <div style="margin-top:6px">数据口径：订单 ≠ 摄入；消费记录 ≠ 完整历史。卡片仅依据实际取回的记录陈述。</div>
+    </div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============================================================
+     麦门回忆卡 · 页面渲染逻辑
+     安全原则：
+       1. 所有来自数据文件的字符串，一律经 textContent / createElement 写入，
+          绝不使用 innerHTML 拼接 —— 杜绝恶意字符串注入。
+       2. 未知值一律显示「未知」，绝不填 0。
+       3. 已取消 / 已退款 不计入已完成订单；未知状态单列。
+       4. 每张卡都重复展示覆盖范围。
+       5. 门店只来自 order-list，绝不使用「附近门店」。
+     本文件不含任何写操作、不含任何网络请求。
+     ============================================================ */
+
+  var SAMPLES = {
+    full:    "samples/fictional-full.json",
+    partial: "samples/fictional-partial.json",
+    empty:   "samples/fictional-empty.json"
+  };
+
+  // 内嵌兜底样例：当以 file:// 打开导致 fetch 被浏览器拦截时，仍可演示。
+  // 内容是 samples/*.json 的精简镜像（纯虚构）。
+  var INLINE = {
+    full: {
+      schemaVersion:"1.0", generatedAt:"(内嵌兜底样例)",
+      _sample:{kind:"fictional-full(inline)",notice:"内嵌虚构样例"},
+      source:{server:"https://mcp.mcd.cn",tools:["query-my-account","order-list","query-my-coupons"],toolsFailed:[],writeToolsInvoked:[]},
+      coverage:{ordersStart:"2026-07-13T11:20:00+08:00",ordersEnd:"2026-10-09T19:05:00+08:00",
+        orderCountFetched:10,isComplete:"complete",pagesFetched:3,
+        coverageNote:"数据覆盖：2026-07-13 至 2026-10-09 · 共取回 10 条订单记录"},
+      account:{available:1280,accumulated:6540,frozen:0,expiringSoon:120,status:"ok",note:"字段已确认解析。"},
+      coupons:{status:"ok",totalCount:7,byCategory:{"到店取餐":4,"麦乐送":3},note:"仅统计数量。"},
+      orders:[
+        {id:"ORD-***-001",createdAt:"2026-10-09T19:05:00+08:00",channel:"到店取餐",amount:34.5,currency:"CNY",items:[{name:"原味板烧鸡腿堡",quantity:1}],storeId:"ST-***-A1",storeName:"示例路店",status:"completed",statusRaw:"已完成",isCompleted:true},
+        {id:"ORD-***-002",createdAt:"2026-10-06T12:31:00+08:00",channel:"麦乐送",amount:52.0,currency:"CNY",items:[{name:"巨无霸",quantity:2}],storeId:"ST-***-A1",storeName:"示例路店",status:"completed",statusRaw:"已完成",isCompleted:true},
+        {id:"ORD-***-003",createdAt:"2026-10-02T18:44:00+08:00",channel:"到店取餐",amount:28.0,currency:"CNY",items:null,storeId:"ST-***-B7",storeName:"样例街店",status:"cancelled",statusRaw:"已取消",isCompleted:false},
+        {id:"ORD-***-004",createdAt:"2026-09-28T09:12:00+08:00",channel:"麦乐送",amount:41.0,currency:"CNY",items:null,storeId:"ST-***-A1",storeName:"示例路店",status:"refunded",statusRaw:"已退款",isCompleted:false},
+        {id:"ORD-***-005",createdAt:"2026-09-21T13:02:00+08:00",channel:null,amount:null,currency:null,items:null,storeId:null,storeName:null,status:"unknown",statusRaw:"STATE_UNRECOGNIZED",isCompleted:false},
+        {id:"ORD-***-006",createdAt:"2026-09-14T20:15:00+08:00",channel:"到店取餐",amount:36.0,currency:"CNY",items:null,storeId:"ST-***-C3",storeName:"演示大道店",status:"completed",statusRaw:"已完成",isCompleted:true},
+        {id:"ORD-***-007",createdAt:"2026-09-03T11:50:00+08:00",channel:"到店取餐",amount:30.0,currency:"CNY",items:null,storeId:"ST-***-A1",storeName:"示例路店",status:"completed",statusRaw:"已完成",isCompleted:true},
+        {id:"ORD-***-008",createdAt:"2026-08-25T17:40:00+08:00",channel:"麦乐送",amount:47.5,currency:"CNY",items:null,storeId:"ST-***-C3",storeName:"演示大道店",status:"completed",statusRaw:"已完成",isCompleted:true},
+        {id:"ORD-***-009",createdAt:"2026-08-11T12:08:00+08:00",channel:"到店取餐",amount:33.0,currency:"CNY",items:null,storeId:"ST-***-A1",storeName:"示例路店",status:"completed",statusRaw:"已完成",isCompleted:true},
+        {id:"ORD-***-010",createdAt:"2026-07-13T11:20:00+08:00",channel:"到店取餐",amount:29.0,currency:"CNY",items:null,storeId:"ST-***-B7",storeName:"样例街店",status:"completed",statusRaw:"已完成",isCompleted:true}
+      ],
+      stores:[
+        {storeId:"ST-***-A1",storeName:"示例路店",orderCount:5,source:"order-list"},
+        {storeId:"ST-***-B7",storeName:"样例街店",orderCount:2,source:"order-list"},
+        {storeId:"ST-***-C3",storeName:"演示大道店",orderCount:2,source:"order-list"}
+      ],
+      unknowns:[{field:"orders[4].status",reason:"原始状态 STATE_UNRECOGNIZED 无法映射",impact:"不纳入已完成计数，单列展示"}],
+      warnings:[]
+    },
+    partial: {
+      schemaVersion:"1.0", generatedAt:"(内嵌兜底样例)",
+      _sample:{kind:"fictional-partial(inline)",notice:"内嵌虚构样例"},
+      source:{server:"https://mcp.mcd.cn",tools:["query-my-account","order-list"],
+        toolsFailed:[{tool:"query-my-coupons",reason:"429 触发限流，未重试"}],writeToolsInvoked:[]},
+      coverage:{ordersStart:"2026-09-11T08:30:00+08:00",ordersEnd:"2026-10-10T09:15:00+08:00",
+        orderCountFetched:6,isComplete:"partial",pagesFetched:1,
+        coverageNote:"数据覆盖：2026-09-11 至 2026-10-10 · 仅取回 6 条记录（分页能力未确认，可能仍存在更早记录）"},
+      account:{available:null,accumulated:null,frozen:null,expiringSoon:null,status:"unknown",
+        note:"工具返回了内容，但未能确认积分字段名，故全部标为未知，未填入 0。"},
+      coupons:{status:"unavailable",totalCount:null,byCategory:null,note:"query-my-coupons 调用失败（429）。"},
+      orders:[
+        {id:"ORD-***-101",createdAt:"2026-10-10T09:15:00+08:00",channel:"到店取餐",amount:31.0,currency:"CNY",items:null,storeId:null,storeName:null,status:"completed",statusRaw:"COMPLETED",isCompleted:true},
+        {id:"ORD-***-102",createdAt:"2026-10-04T19:22:00+08:00",channel:"到店取餐",amount:29.5,currency:"CNY",items:null,storeId:null,storeName:null,status:"completed",statusRaw:"COMPLETED",isCompleted:true},
+        {id:"ORD-***-103",createdAt:"2026-09-29T12:03:00+08:00",channel:null,amount:null,currency:null,items:null,storeId:null,storeName:null,status:"unknown",statusRaw:"",isCompleted:false},
+        {id:"ORD-***-104",createdAt:"2026-09-20T18:40:00+08:00",channel:"到店取餐",amount:26.0,currency:"CNY",items:null,storeId:null,storeName:null,status:"cancelled",statusRaw:"CANCELLED",isCompleted:false},
+        {id:"ORD-***-105",createdAt:"2026-09-15T07:55:00+08:00",channel:"到店取餐",amount:22.0,currency:"CNY",items:null,storeId:null,storeName:null,status:"completed",statusRaw:"COMPLETED",isCompleted:true},
+        {id:"ORD-***-106",createdAt:"2026-09-11T08:30:00+08:00",channel:null,amount:null,currency:null,items:null,storeId:null,storeName:null,status:"refunded",statusRaw:"REFUNDED",isCompleted:false}
+      ],
+      stores:[],
+      unknowns:[
+        {field:"orders[*].storeName",reason:"本次返回未包含门店字段",impact:"不生成门店足迹卡（绝不改用附近门店代替）"},
+        {field:"orders[*].items",reason:"本次返回未包含餐品明细",impact:"不生成常点餐品卡"},
+        {field:"account.*",reason:"无法确认积分字段名",impact:"积分卡显示未知而非 0"},
+        {field:"coverage.isComplete",reason:"无法确认分页上限",impact:"覆盖说明标注为部分数据"}
+      ],
+      warnings:["本次仅取回部分订单记录（1 页），实际历史可能更长。","券数据本次不可用。"]
+    },
+    empty: {
+      schemaVersion:"1.0", generatedAt:"(内嵌兜底样例)",
+      _sample:{kind:"fictional-empty(inline)",notice:"内嵌虚构样例"},
+      source:{server:"https://mcp.mcd.cn",tools:["query-my-account"],
+        toolsFailed:[{tool:"order-list",reason:"返回空列表"},{tool:"query-my-coupons",reason:"返回空列表"}],
+        writeToolsInvoked:[]},
+      coverage:{ordersStart:null,ordersEnd:null,orderCountFetched:0,isComplete:"unknown",pagesFetched:null,
+        coverageNote:"未能取回任何订单记录，无法确定覆盖范围"},
+      account:{available:0,accumulated:0,frozen:null,expiringSoon:null,status:"ok",note:"账户积分为 0，已确认。"},
+      coupons:{status:"unavailable",totalCount:null,byCategory:null,note:"query-my-coupons 未返回可用券。"},
+      orders:[], stores:[],
+      unknowns:[{field:"coverage.ordersStart",reason:"订单列表为空，没有可用于推断时间范围的记录",impact:"不展示订单与门店相关卡片"}],
+      warnings:["本次未取回任何订单记录。订单相关内容只说明「数据不可得」，不展示明细，也不做任何猜测。"]
+    }
+  };
+
+  var stage = document.getElementById("stage");
+  var banners = document.getElementById("banners");
+  var fileInput = document.getElementById("fileInput");
+
+  /* ---------- 工具函数 ---------- */
+
+  function el(tag, cls, text){
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined && text !== null) n.textContent = String(text);
+    return n;
+  }
+
+  function isNum(v){ return typeof v === "number" && isFinite(v); }
+
+  // 未知值统一表述
+  function num(v){ return isNum(v) ? v.toLocaleString("zh-CN") : "未知"; }
+
+  function fmtTime(iso){
+    if (typeof iso !== "string" || !iso) return "未知";
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return "未知";
+    var p = function(n){ return n < 10 ? "0" + n : "" + n; };
+    return d.getFullYear() + "-" + p(d.getMonth()+1) + "-" + p(d.getDate())
+         + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+  }
+
+  function fmtDate(iso){
+    if (typeof iso !== "string" || !iso) return null;
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return null;
+    var p = function(n){ return n < 10 ? "0" + n : "" + n; };
+    return d.getFullYear() + "-" + p(d.getMonth()+1) + "-" + p(d.getDate());
+  }
+
+  var STATUS_TEXT = {
+    completed: "已完成",
+    cancelled: "已取消",
+    refunded:  "已退款",
+    unknown:   "状态未知"
+  };
+  var STATUS_CLASS = {
+    completed: "ok",
+    cancelled: "cancel",
+    refunded:  "refund",
+    unknown:   "unknown"
+  };
+
+  function normStatus(s){
+    return (s === "completed" || s === "cancelled" || s === "refunded") ? s : "unknown";
+  }
+
+  /* ---------- 结构校验（深度） ---------- */
+  // 原则：宁可拒绝渲染，也不在数据错误时输出看似正常的卡片。
+  var VALID_STATUS = ["completed", "cancelled", "refunded", "unknown"];
+  var VALID_ACCT_STATUS = ["ok", "unknown", "unavailable"];
+  var VALID_COMPLETE = ["complete", "partial", "unknown"];
+
+  function isObj(v){ return v !== null && typeof v === "object" && !Array.isArray(v); }
+  function isArr(v){ return Object.prototype.toString.call(v) === "[object Array]"; }
+  function isNumOrNull(v){ return v === null || (typeof v === "number" && isFinite(v)); }
+  function isIntOrNull(v){ return v === null || (typeof v === "number" && isFinite(v) && Math.floor(v) === v); }
+  function isStrOrNull(v){ return v === null || typeof v === "string"; }
+
+  function parseISO(v){
+    if (typeof v !== "string" || !v) return null;
+    var t = Date.parse(v);
+    return isNaN(t) ? null : t;
+  }
+
+  function validate(data){
+    var errs = [];
+    if (!isObj(data)) {
+      return ["顶层不是一个对象——文件内容应该是一对花括号包起来的对象。"];
+    }
+
+    // schemaVersion
+    if (typeof data.schemaVersion !== "string" || !data.schemaVersion){
+      errs.push("缺少 schemaVersion 字段，无法确认数据版本。");
+    } else if (String(data.schemaVersion).split(".")[0] !== "1") {
+      errs.push("schemaVersion 为 " + data.schemaVersion + "，主版本不是 1，本页可能不兼容。");
+    }
+
+    if ("_sample" in data && !isObj(data._sample)) errs.push("_sample 必须是对象（或删除该字段）。");
+    if ("generatedAt" in data && typeof data.generatedAt !== "string") errs.push("generatedAt 必须是字符串。");
+
+    // source
+    var src = data.source;
+    if (src !== undefined && src !== null && !isObj(src)) errs.push("source 必须是对象。");
+    if (isObj(src)) {
+      if ("tools" in src && !isArr(src.tools)) errs.push("source.tools 必须是数组。");
+      if (src.toolsFailed !== undefined && src.toolsFailed !== null) {
+        if (!isArr(src.toolsFailed)) errs.push("source.toolsFailed 必须是数组。");
+        else src.toolsFailed.forEach(function(item, i){
+          if (!isObj(item)) errs.push("source.toolsFailed[" + i + "] 必须是对象（含 tool 与 reason）。");
+          else if (typeof item.tool !== "string") errs.push("source.toolsFailed[" + i + "].tool 必须是字符串。");
+        });
+      }
+      if (src.writeToolsInvoked !== undefined && src.writeToolsInvoked !== null) {
+        if (!isArr(src.writeToolsInvoked)) errs.push("source.writeToolsInvoked 必须是数组（无写操作时请留空数组）。");
+        else if (src.writeToolsInvoked.length) {
+          errs.push("数据声明调用了写工具（" + src.writeToolsInvoked.join("、") + "）。本页仅做只读回顾，已拒绝渲染。");
+        }
+      }
+    }
+
+    // coverage
+    var cov = data.coverage;
+    if (!isObj(cov)) {
+      errs.push("缺少 coverage 段，无法确定数据覆盖范围。");
+    } else {
+      ["ordersStart", "ordersEnd"].forEach(function(k){
+        var v = cov[k];
+        if (v !== null && v !== undefined && parseISO(v) === null)
+          errs.push("coverage." + k + " 不是可解析的时间：" + String(v).slice(0, 40));
+      });
+      var n = cov.orderCountFetched;
+      if (typeof n !== "number" || !isFinite(n) || Math.floor(n) !== n || n < 0)
+        errs.push("coverage.orderCountFetched 必须是大于等于 0 的整数。");
+      if (cov.isComplete !== undefined && cov.isComplete !== null && VALID_COMPLETE.indexOf(cov.isComplete) === -1)
+        errs.push("coverage.isComplete 取值必须是 complete / partial / unknown 之一，当前为 " + cov.isComplete);
+      if (cov.pagesFetched !== undefined && !isIntOrNull(cov.pagesFetched))
+        errs.push("coverage.pagesFetched 必须是非负整数或 null。");
+      if ("coverageNote" in cov && typeof cov.coverageNote !== "string")
+        errs.push("coverage.coverageNote 必须是字符串。");
+      // 一致性：声明条数须与 orders 实际条数吻合
+      if (typeof n === "number" && isArr(data.orders) && n !== data.orders.length) {
+        errs.push("coverage.orderCountFetched 声明为 " + n + "，但订单记录实际有 "
+                  + data.orders.length + " 条，二者必须一致。");
+      }
+      var sd = parseISO(cov.ordersStart), ed = parseISO(cov.ordersEnd);
+      if (sd !== null && ed !== null && sd > ed)
+        errs.push("coverage.ordersStart 晚于 ordersEnd，时间区间不成立。");
+    }
+
+    // account
+    var acc = data.account;
+    if (!isObj(acc)) {
+      errs.push("缺少 account 段。");
+    } else {
+      if (acc.status !== undefined && acc.status !== null && VALID_ACCT_STATUS.indexOf(acc.status) === -1)
+        errs.push("account.status 取值必须是 ok / unknown / unavailable 之一，当前为 " + acc.status);
+      ["available", "accumulated", "frozen", "expiringSoon"].forEach(function(k){
+        if (k in acc && !isNumOrNull(acc[k]))
+          errs.push("account." + k + " 必须是数字或 null（未知请用 null，不要用 0）。");
+      });
+      if ("note" in acc && typeof acc.note !== "string") errs.push("account.note 必须是字符串。");
+    }
+
+    // coupons
+    var cp = data.coupons;
+    if (cp !== undefined && cp !== null && !isObj(cp)) {
+      errs.push("coupons 必须是对象。");
+    } else if (isObj(cp)) {
+      if (cp.status !== undefined && cp.status !== null && VALID_ACCT_STATUS.indexOf(cp.status) === -1)
+        errs.push("coupons.status 取值必须是 ok / unknown / unavailable 之一，当前为 " + cp.status);
+      if (cp.totalCount !== undefined && !(cp.totalCount === null ||
+          (typeof cp.totalCount === "number" && cp.totalCount >= 0 && Math.floor(cp.totalCount) === cp.totalCount)))
+        errs.push("coupons.totalCount 必须是非负整数或 null。");
+      if (cp.byCategory !== undefined && cp.byCategory !== null) {
+        if (!isObj(cp.byCategory)) errs.push("coupons.byCategory 必须是对象或 null。");
+        else Object.keys(cp.byCategory).forEach(function(k){
+          var v = cp.byCategory[k];
+          if (typeof v !== "number" || !isFinite(v) || v < 0 || Math.floor(v) !== v)
+            errs.push("coupons.byCategory[" + k + "] 必须是非负整数。");
+        });
+      }
+    }
+
+    // orders
+    var orders = data.orders;
+    if (orders !== undefined && orders !== null) {
+      if (!isArr(orders)) {
+        errs.push("orders 必须是数组。");
+      } else {
+        orders.forEach(function(o, i){
+          var tag = "orders[" + i + "]";
+          if (o === null) { errs.push(tag + " 是 null——订单记录必须是对象；空记录请直接从数组中移除。"); return; }
+          if (!isObj(o)) { errs.push(tag + " 必须是对象，当前为 " + (typeof o) + "。"); return; }
+          if ("id" in o && typeof o.id !== "string") errs.push(tag + ".id 必须是字符串。");
+          if ("createdAt" in o && o.createdAt !== null && parseISO(o.createdAt) === null)
+            errs.push(tag + ".createdAt 不是可解析的时间：" + String(o.createdAt).slice(0, 40));
+          var st = o.status;
+          if (st === undefined || st === null) errs.push(tag + " 缺少 status 字段。");
+          else if (VALID_STATUS.indexOf(st) === -1)
+            errs.push(tag + ".status 取值必须是 " + VALID_STATUS.join(" / ") + " 之一，当前为 " + st);
+          if ("statusRaw" in o && typeof o.statusRaw !== "string")
+            errs.push(tag + ".statusRaw 必须是字符串（保留官方原文，无则用空串）。");
+          if ("isCompleted" in o && typeof o.isCompleted !== "boolean")
+            errs.push(tag + ".isCompleted 必须是布尔值。");
+          if (VALID_STATUS.indexOf(st) !== -1 && typeof o.isCompleted === "boolean") {
+            var want = (st === "completed");
+            if (o.isCompleted !== want)
+              errs.push(tag + " 自相矛盾：status=" + st + " 但 isCompleted=" + o.isCompleted
+                        + "（status 为 completed 时 isCompleted 必须为 true，其余必须为 false）。");
+          }
+          if ("amount" in o && !isNumOrNull(o.amount))
+            errs.push(tag + ".amount 必须是数字或 null（未知请用 null，不要用 0）。");
+          ["currency", "channel", "storeId", "storeName"].forEach(function(k){
+            if (k in o && !isStrOrNull(o[k])) errs.push(tag + "." + k + " 必须是字符串或 null。");
+          });
+          var items = o.items;
+          if (items !== undefined && items !== null) {
+            if (!isArr(items)) errs.push(tag + ".items 必须是数组或 null。");
+            else items.forEach(function(it, j){
+              if (!isObj(it)) { errs.push(tag + ".items[" + j + "] 必须是对象。"); return; }
+              if (typeof it.name !== "string") errs.push(tag + ".items[" + j + "].name 必须是字符串。");
+              if (it.quantity !== undefined && it.quantity !== null &&
+                  (typeof it.quantity !== "number" || it.quantity < 0 || Math.floor(it.quantity) !== it.quantity))
+                errs.push(tag + ".items[" + j + "].quantity 必须是非负整数或 null。");
+            });
+          }
+        });
+      }
+    }
+
+    // stores
+    var stores = data.stores;
+    if (stores !== undefined && stores !== null) {
+      if (!isArr(stores)) errs.push("stores 必须是数组。");
+      else stores.forEach(function(s, i){
+        var tag = "stores[" + i + "]";
+        if (!isObj(s)) { errs.push(tag + " 必须是对象。"); return; }
+        if (typeof s.storeId !== "string") errs.push(tag + ".storeId 必须是字符串。");
+        if ("storeName" in s && !isStrOrNull(s.storeName)) errs.push(tag + ".storeName 必须是字符串或 null。");
+        if (typeof s.orderCount !== "number" || s.orderCount < 1 || Math.floor(s.orderCount) !== s.orderCount)
+          errs.push(tag + ".orderCount 必须是大于等于 1 的整数。");
+        if ("source" in s && s.source !== "order-list")
+          errs.push(tag + '.source 必须是 "order-list"（门店只能来自订单记录）。');
+      });
+    }
+
+    // unknowns
+    var unks = data.unknowns;
+    if (unks !== undefined && unks !== null) {
+      if (!isArr(unks)) errs.push("unknowns 必须是数组。");
+      else unks.forEach(function(u, i){
+        if (!isObj(u)) { errs.push("unknowns[" + i + "] 必须是对象。"); return; }
+        if (typeof u.field !== "string") errs.push("unknowns[" + i + "].field 必须是字符串。");
+        if (typeof u.reason !== "string") errs.push("unknowns[" + i + "].reason 必须是字符串。");
+      });
+    }
+
+    // warnings
+    var warns = data.warnings;
+    if (warns !== undefined && warns !== null) {
+      if (!isArr(warns)) errs.push("warnings 必须是数组。");
+      else warns.forEach(function(w, i){
+        if (typeof w !== "string") errs.push("warnings[" + i + "] 必须是字符串。");
+      });
+    }
+
+    return errs;
+  }
+
+  /* ---------- 卡片构造 ---------- */
+
+  function card(title, coverText, targetText){
+    var c = el("section", "card");
+    c.appendChild(el("h2", null, title));
+    var body = el("div", "body");
+    c.appendChild(body);
+    if (coverText){
+      var cv = el("div", "cover");
+      cv.appendChild(el("b", null, "覆盖范围："));
+      cv.appendChild(document.createTextNode(coverText));
+      c.appendChild(cv);
+    }
+    if (targetText){
+      c.appendChild(el("div", "notarget", targetText));
+    }
+    return { root: c, body: body };
+  }
+
+  function addRow(body, left, right, tagKind){
+    var r = el("div", "row");
+    var l = el("div", "l");
+    l.appendChild(document.createTextNode(left));
+    if (tagKind){
+      l.appendChild(document.createTextNode(" "));
+      l.appendChild(el("span", "tag " + tagKind, STATUS_TEXT[tagKind]));
+    }
+    r.appendChild(l);
+    var rr = el("div", "r");
+    rr.textContent = right;
+    r.appendChild(rr);
+    body.appendChild(r);
+  }
+
+  function addCells(body, cells){
+    var g = el("div", "grid");
+    cells.forEach(function(pair){
+      var c = el("div", "cell");
+      c.appendChild(el("div", "k", pair[0]));
+      c.appendChild(el("div", "v", pair[1]));
+      g.appendChild(c);
+    });
+    body.appendChild(g);
+  }
+
+  function addUnknownBlock(body, unknowns){
+    if (!unknowns || !unknowns.length) return;
+    var box = el("div", "known-unknown");
+    box.appendChild(el("div", null, "本卡片相关的未知项："));
+    var ul = el("ul");
+    unknowns.forEach(function(u){
+      var li = el("li");
+      li.textContent = (u && u.field ? u.field : "未命名字段") + " —— " + (u && u.reason ? u.reason : "原因未知");
+      li.textContent += "（影响：" + (u && u.impact ? u.impact : "未说明") + "）";
+      ul.appendChild(li);
+    });
+    box.appendChild(ul);
+    body.appendChild(box);
+  }
+
+  /* ---------- 渲染主流程 ---------- */
+
+  function render(data, modeLabel){
+    stage.textContent = "";
+    banners.textContent = "";
+
+    var errs;
+    try {
+      errs = validate(data);
+    } catch (e){
+      errs = ["校验数据时发生意外错误：" + (e && e.message ? e.message : String(e))];
+    }
+    if (errs.length){
+      var b = el("div", "banner err");
+      b.appendChild(el("div", null, "这份数据有 " + errs.length + " 处问题，为避免显示错误内容，本页不渲染卡片："));
+      var ul = el("ul");
+      errs.slice(0, 30).forEach(function(e){ ul.appendChild(el("li", null, e)); });
+      b.appendChild(ul);
+      if (errs.length > 30){
+        b.appendChild(el("div", null, "（问题较多，此处仅列出前 30 条）"));
+      }
+      b.appendChild(el("div", null,
+        "常见原因：字段类型不对、订单条数与 coverage 声明不一致、状态与计入标记矛盾、"
+        + "或把未知值写成了 0。修正后重新导入即可。"));
+      banners.appendChild(b);
+      return;
+    }
+
+    try {
+      renderCards(data, modeLabel);
+    } catch (e){
+      stage.textContent = "";
+      var eb = el("div", "banner err");
+      eb.appendChild(el("div", null, "渲染过程中发生错误，卡片未生成。"));
+      eb.appendChild(el("div", null, String(e && e.message ? e.message : e)));
+      banners.appendChild(eb);
+    }
+  }
+
+  function renderCards(data, modeLabel){
+    // 模式横幅
+    var isSample = !!(data._sample || (modeLabel && modeLabel.indexOf("示例") === 0));
+    if (isSample){
+      var d = el("div", "banner demo");
+      d.textContent = "示例数据 · 非真实账户 —— 本页当前展示的是虚构样例，用于演示渲染效果。";
+      banners.appendChild(d);
+    } else if (modeLabel){
+      var d2 = el("div", "banner");
+      d2.textContent = "已导入：" + modeLabel + "（内容由你的数据文件决定，本页只负责展示）";
+      banners.appendChild(d2);
+    }
+
+    var cov = data.coverage || {};
+    var coverText = typeof cov.coverageNote === "string" && cov.coverageNote
+      ? cov.coverageNote
+      : buildCoverText(cov);
+
+    // 全局告警
+    (data.warnings || []).forEach(function(w){
+      banners.appendChild(el("div", "banner", String(w)));
+    });
+
+    var cards = el("div", "cards");
+
+    /* --- 卡 1：当前积分 --- */
+    var acc = data.account || {};
+    var c1 = card("当前积分", coverText, null);
+    if (acc.status === "unavailable"){
+      c1.body.appendChild(el("div", "empty", "积分数据本次不可得。"));
+    } else {
+      c1.body.appendChild(el("div", "big", num(acc.available)));
+      c1.body.appendChild(el("div", "cover", "可用积分" + (acc.status === "unknown" ? "（字段未能确认，显示为未知）" : "")));
+      addCells(c1.body, [
+        ["累计积分", num(acc.accumulated)],
+        ["冻结积分", num(acc.frozen)],
+        ["即将过期", num(acc.expiringSoon)]
+      ]);
+      if (acc.note) c1.body.appendChild(el("div", "cover", acc.note));
+    }
+    cards.appendChild(c1.root);
+
+    /* --- 卡 2：券摘要 --- */
+    var cp = data.coupons || {};
+    var c2 = card("券摘要", coverText, "仅统计数量与类别，不列出券码。");
+    if (cp.status === "unavailable"){
+      c2.body.appendChild(el("div", "empty", "券数据本次不可得。"));
+      if (cp.note) c2.body.appendChild(el("div", "cover", cp.note));
+    } else {
+      c2.body.appendChild(el("div", "big", num(cp.totalCount)));
+      c2.body.appendChild(el("div", "cover", "当前可用券总数"));
+      if (cp.byCategory && typeof cp.byCategory === "object"){
+        var g = el("div", "grid");
+        Object.keys(cp.byCategory).forEach(function(k){
+          var cell = el("div", "cell");
+          cell.appendChild(el("div", "k", k));
+          cell.appendChild(el("div", "v", num(cp.byCategory[k])));
+          g.appendChild(cell);
+        });
+        c2.body.appendChild(g);
+      }
+      if (cp.note) c2.body.appendChild(el("div", "cover", cp.note));
+    }
+    cards.appendChild(c2.root);
+
+    /* --- 卡 3：订单概览 --- */
+    var orders = Array.isArray(data.orders) ? data.orders : [];
+    var completed = orders.filter(function(o){ return normStatus(o.status) === "completed" && o.isCompleted === true; });
+    var cancelled = orders.filter(function(o){ return normStatus(o.status) === "cancelled"; });
+    var refunded  = orders.filter(function(o){ return normStatus(o.status) === "refunded"; });
+    var unknownS  = orders.filter(function(o){ return normStatus(o.status) === "unknown"; });
+    // isCompleted 与 status 不一致的记录，单列提示（数据自相矛盾时不静默）
+    var conflicted = orders.filter(function(o){
+      var s = normStatus(o.status);
+      return (s === "completed" && o.isCompleted !== true) || (s !== "completed" && o.isCompleted === true);
+    });
+
+    var c3 = card("订单概览", coverText, "已取消、已退款单独统计，不算进已完成。");
+    if (!orders.length){
+      c3.body.appendChild(el("div", "empty", "本次未取回任何订单记录。"));
+    } else {
+      addCells(c3.body, [
+        ["取回记录", num(orders.length) + " 条"],
+        ["已完成", num(completed.length) + " 条"],
+        ["已取消", num(cancelled.length) + " 条"],
+        ["已退款", num(refunded.length) + " 条"],
+        ["状态未知", num(unknownS.length) + " 条"]
+      ]);
+      if (cov.isComplete === "partial" || cov.isComplete === "unknown"){
+        c3.body.appendChild(el("div", "banner", cov.isComplete === "partial"
+          ? "注意：本次仅取回部分记录，以上计数不代表完整历史。"
+          : "注意：无法确认是否已取全记录，以上计数谨慎参考。"));
+      }
+      if (conflicted.length){
+        c3.body.appendChild(el("div", "banner",
+          "有 " + conflicted.length + " 条记录的 status 与 isCompleted 标记不一致，为避免误报，均未计入已完成。"));
+      }
+    }
+    cards.appendChild(c3.root);
+
+    /* --- 卡 4：订单记录明细 --- */
+    if (orders.length){
+      var c4 = card("订单记录", coverText, "只列状态明确的记录，状态未知的在下一张卡。");
+      var shown = orders.filter(function(o){ return normStatus(o.status) !== "unknown"; });
+      // 冲突记录（status 与 isCompleted 不一致）不给确定性标签，避免自相矛盾展示
+      var conflictSet = [];
+      conflicted.forEach(function(o){ conflictSet.push(o); });
+      function isConflict(o){ return conflictSet.indexOf(o) !== -1; }
+      if (!shown.length){
+        c4.body.appendChild(el("div", "empty", "本次取回的记录状态均无法确认。"));
+      } else {
+        shown.slice(0, 50).forEach(function(o){
+          var s = normStatus(o.status);
+          var time = fmtTime(o.createdAt);
+          var storeTxt = (typeof o.storeName === "string" && o.storeName) ? o.storeName : null;
+          var left = time
+            + (storeTxt ? " · " + storeTxt : "")
+            + (o.channel ? " · " + o.channel : "")
+            + (isConflict(o) ? " · 标记与状态不一致" : "");
+          addRow(c4.body, left, o.id ? String(o.id) : "（无标识）",
+                 isConflict(o) ? "unknown" : s);
+        });
+        if (shown.length > 50){
+          c4.body.appendChild(el("div", "cover", "（共 " + shown.length + " 条，此处仅展示前 50 条）"));
+        }
+        if (conflictSet.length){
+          c4.body.appendChild(el("div", "cover",
+            "标注「状态未知」的记录，状态字段与是否计入互相矛盾。为了不误导，这里不给结论。"));
+        }
+      }
+      cards.appendChild(c4.root);
+    }
+
+    /* --- 卡 5：状态未知的记录（独立展示） --- */
+    var c5 = card("状态未知的记录", coverText, "这些记录的状态认不出来，既不算完成，也不算取消。");
+    if (!unknownS.length){
+      c5.body.appendChild(el("div", "empty", "本次没有状态未知的记录。"));
+    } else {
+      unknownS.forEach(function(o){
+        var left = fmtTime(o.createdAt) + " · 原始状态：" + (o.statusRaw ? String(o.statusRaw) : "（空）");
+        addRow(c5.body, left, o.id ? String(o.id) : "（无标识）", "unknown");
+      });
+      c5.body.appendChild(el("div", "cover",
+        "这些记录不计入上面任何统计。如需修正，请在生成数据时补上状态规则。"));
+    }
+    cards.appendChild(c5.root);
+
+    /* --- 卡 6：门店记录 --- */
+    var stores = Array.isArray(data.stores) ? data.stores : [];
+    var c6 = card("门店记录", coverText,
+      "门店只来自你的订单记录。附近的店不算你去过。");
+    if (!stores.length){
+      c6.body.appendChild(el("div", "empty",
+        orders.length ? "本次订单记录中未包含门店信息，故不生成门店足迹。" : "本次无订单记录，故不生成门店足迹。"));
+    } else {
+      var sorted = stores.slice().sort(function(a,b){ return (b.orderCount||0) - (a.orderCount||0); });
+      sorted.forEach(function(s){
+        var name = (typeof s.storeName === "string" && s.storeName) ? s.storeName : (s.storeId ? String(s.storeId) : "未命名门店");
+        addRow(c6.body, name, num(s.orderCount) + " 次");
+      });
+      c6.body.appendChild(el("div", "cover", "以上门店来自 order-list 返回记录，非附近推荐。"));
+    }
+    cards.appendChild(c6.root);
+
+    /* --- 卡 7：数据覆盖说明 --- */
+    var c7 = card("数据覆盖说明", coverText, "这张卡请和上面所有卡片一起看。");
+    var startD = fmtDate(cov.ordersStart);
+    var endD = fmtDate(cov.ordersEnd);
+    var scopeTxt = (startD && endD) ? (startD + " 至 " + endD)
+                 : (cov.orderCountFetched ? "时间范围无法确定" : "无订单记录");
+    var completeTxt = cov.isComplete === "complete" ? "已确认取全"
+                    : cov.isComplete === "partial" ? "仅取回部分（分页受限）"
+                    : "无法判断是否取全";
+    addCells(c7.body, [
+      ["时间范围", scopeTxt],
+      ["取回条数", num(cov.orderCountFetched) + " 条"],
+      ["完整性", completeTxt],
+      ["已取页数", cov.pagesFetched === null || cov.pagesFetched === undefined ? "未知" : String(cov.pagesFetched)]
+    ]);
+    if (cov.coverageNote) c7.body.appendChild(el("div", "cover", cov.coverageNote));
+
+    // 来源与失败工具
+    var src = data.source || {};
+    if (Array.isArray(src.tools) && src.tools.length){
+      c7.body.appendChild(el("div", "cover", "成功调用：" + src.tools.join("、")));
+    }
+    if (Array.isArray(src.toolsFailed) && src.toolsFailed.length){
+      var fb = el("div", "known-unknown");
+      fb.appendChild(el("div", null, "未能取数的工具："));
+      var ful = el("ul");
+      src.toolsFailed.forEach(function(f){
+        ful.appendChild(el("li", null, (f && f.tool ? f.tool : "未知工具") + " —— " + (f && f.reason ? f.reason : "原因未知")));
+      });
+      fb.appendChild(ful);
+      c7.body.appendChild(fb);
+    }
+    c7.body.appendChild(el("div", "cover",
+      "本作品为麦当劳程序员创意开发大赛参赛作品，非麦当劳官方产品。卡片内容仅供参考，餐品信息与官方渠道实时结果为准。"));
+
+    cards.appendChild(c7.root);
+
+    /* --- 卡 8：未知项清单 --- */
+    var unks = Array.isArray(data.unknowns) ? data.unknowns : [];
+    if (unks.length){
+      var c8 = card("没能确认的项", coverText, "这些内容这次没能确认，列出来而不是藏起来。");
+      addUnknownBlock(c8.body, unks);
+      cards.appendChild(c8.root);
+    }
+
+    stage.appendChild(cards);
+  }
+
+  function buildCoverText(cov){
+    var s = fmtDate(cov.ordersStart), e = fmtDate(cov.ordersEnd);
+    var n = isNum(cov.orderCountFetched) ? cov.orderCountFetched : 0;
+    if (!n) return "未取回订单记录，无法确定覆盖范围";
+    if (s && e) return "数据覆盖：" + s + " 至 " + e + " · 共取回 " + n + " 条订单记录";
+    return "共取回 " + n + " 条订单记录（时间范围无法确定）";
+  }
+
+  /* ---------- 数据加载 ---------- */
+
+  function loadSample(key){
+    var url = SAMPLES[key];
+    fetch(url, {cache:"no-store"})
+      .then(function(r){
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      })
+      .then(function(d){ render(d, "示例数据"); })
+      .catch(function(){
+        // file:// 下 fetch 常被拦截 —— 退回内嵌兜底样例
+        render(INLINE[key], "示例数据");
+        var b = el("div", "banner");
+        b.textContent = "提示：本地直接打开时无法读取 samples/ 目录，已自动使用内嵌的等价样例（内容相同，纯虚构）。"
+          + "如需加载完整样例文件，请用本地静态服务器打开本页。";
+        banners.appendChild(b);
+      });
+  }
+
+  function clearAll(){
+    stage.textContent = "";
+    banners.textContent = "";
+    var b = el("div", "banner");
+    b.textContent = "已清除。可以点上方「示例数据」看演示，或点「导入 JSON」加载你自己的数据。";
+    banners.appendChild(b);
+    setActive(null);
+  }
+
+  function setActive(which){
+    ["btnDemoFull","btnDemoPartial","btnDemoEmpty"].forEach(function(id){ 
+      document.getElementById(id).classList.remove("on");
+    });
+    if (which) document.getElementById(which).classList.add("on");
+  }
+
+  /* ---------- 事件绑定 ---------- */
+
+  document.getElementById("btnDemoFull").addEventListener("click", function(){
+    setActive("btnDemoFull"); loadSample("full");
+  });
+  document.getElementById("btnDemoPartial").addEventListener("click", function(){
+    setActive("btnDemoPartial"); loadSample("partial");
+  });
+  document.getElementById("btnDemoEmpty").addEventListener("click", function(){
+    setActive("btnDemoEmpty"); loadSample("empty");
+  });
+  document.getElementById("btnImport").addEventListener("click", function(){
+    fileInput.value = "";
+    fileInput.click();
+  });
+  document.getElementById("btnPrint").addEventListener("click", function(){
+    window.print();
+  });
+  document.getElementById("btnClear").addEventListener("click", clearAll);
+
+  fileInput.addEventListener("change", function(ev){
+    var f = ev.target.files && ev.target.files[0];
+    if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      var raw = String(reader.result || "");
+      var data;
+      try {
+        data = JSON.parse(raw);
+      } catch (e){
+        stage.textContent = "";
+        banners.textContent = "";
+        var b = el("div", "banner err");
+        b.appendChild(el("div", null, "JSON 解析失败，无法导入。"));
+        var pre = el("div");
+        pre.appendChild(el("code", null, String(e && e.message ? e.message : e)));
+        b.appendChild(pre);
+        b.appendChild(el("div", null, "请确认文件是合法的 JSON（常见原因：文件末尾多了逗号、被截断、或是 .txt 被改名）。"));
+        banners.appendChild(b);
+        return;
+      }
+      setActive(null);
+      render(data, f.name || "已导入文件");
+      var nb = el("div", "banner");
+      nb.textContent = "已导入：" + (f.name || "文件") + "（本页仅做本地解析，任何数据都不会离开本机）";
+      banners.appendChild(nb);
+    };
+    reader.onerror = function(){
+      banners.textContent = "";
+      banners.appendChild(el("div", "banner err", "读取文件失败。"));
+    };
+    reader.readAsText(f, "utf-8");
+  });
+
+  /* ---------- 启动 ---------- */
+  // 若 URL 带 ?data=<相对路径>，可加载任意样例；否则默认完整示例。
+  var qs = new URLSearchParams(location.search);
+  var want = qs.get("data");
+  if (want === "full" || want === "partial" || want === "empty"){
+    setActive(want === "full" ? "btnDemoFull" : want === "partial" ? "btnDemoPartial" : "btnDemoEmpty");
+    loadSample(want);
+  } else {
+    loadSample("full");
+  }
+
+  // 供本地自测脚本调用（不影响正常使用）
+  window.__MMC__ = { render: render, validate: validate, INLINE: INLINE };
+})();
+</script>
+</body>
+</html>

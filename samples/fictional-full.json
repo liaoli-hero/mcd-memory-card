@@ -1,0 +1,186 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-10-10T12:20:00+08:00",
+  "_sample": {
+    "kind": "fictional-full",
+    "notice": "本文件为纯虚构样例，用于演示渲染器。其中所有门店、订单、积分数值均为编造，与任何真实账户无关。"
+  },
+  "source": {
+    "server": "https://mcp.mcd.cn",
+    "tools": ["query-my-account", "order-list", "query-my-coupons"],
+    "toolsFailed": [],
+    "writeToolsInvoked": []
+  },
+  "coverage": {
+    "ordersStart": "2026-07-13T11:20:00+08:00",
+    "ordersEnd": "2026-10-09T19:05:00+08:00",
+    "orderCountFetched": 10,
+    "isComplete": "complete",
+    "pagesFetched": 3,
+    "coverageNote": "数据覆盖：2026-07-13 至 2026-10-09 · 共取回 10 条订单记录"
+  },
+  "account": {
+    "available": 1280,
+    "accumulated": 6540,
+    "frozen": 0,
+    "expiringSoon": 120,
+    "status": "ok",
+    "note": "字段由 query-my-account 返回并已确认解析。"
+  },
+  "coupons": {
+    "status": "ok",
+    "totalCount": 7,
+    "byCategory": { "到店取餐": 4, "麦乐送": 3 },
+    "note": "仅统计当前可用券数量，未列出券码。"
+  },
+  "orders": [
+    {
+      "id": "ORD-***-001",
+      "createdAt": "2026-10-09T19:05:00+08:00",
+      "channel": "到店取餐",
+      "amount": 34.5,
+      "currency": "CNY",
+      "items": [{ "name": "原味板烧鸡腿堡", "quantity": 1 }, { "name": "中薯条", "quantity": 1 }],
+      "storeId": "ST-***-A1",
+      "storeName": "示例路店",
+      "status": "completed",
+      "statusRaw": "已完成",
+      "isCompleted": true
+    },
+    {
+      "id": "ORD-***-002",
+      "createdAt": "2026-10-06T12:31:00+08:00",
+      "channel": "麦乐送",
+      "amount": 52.0,
+      "currency": "CNY",
+      "items": [{ "name": "巨无霸", "quantity": 2 }],
+      "storeId": "ST-***-A1",
+      "storeName": "示例路店",
+      "status": "completed",
+      "statusRaw": "已完成",
+      "isCompleted": true
+    },
+    {
+      "id": "ORD-***-003",
+      "createdAt": "2026-10-02T18:44:00+08:00",
+      "channel": "到店取餐",
+      "amount": 28.0,
+      "currency": "CNY",
+      "items": null,
+      "storeId": "ST-***-B7",
+      "storeName": "样例街店",
+      "status": "cancelled",
+      "statusRaw": "已取消",
+      "isCompleted": false
+    },
+    {
+      "id": "ORD-***-004",
+      "createdAt": "2026-09-28T09:12:00+08:00",
+      "channel": "麦乐送",
+      "amount": 41.0,
+      "currency": "CNY",
+      "items": [{ "name": "原味板烧鸡腿堡", "quantity": 1 }],
+      "storeId": "ST-***-A1",
+      "storeName": "示例路店",
+      "status": "refunded",
+      "statusRaw": "已退款",
+      "isCompleted": false
+    },
+    {
+      "id": "ORD-***-005",
+      "createdAt": "2026-09-21T13:02:00+08:00",
+      "channel": null,
+      "amount": null,
+      "currency": null,
+      "items": null,
+      "storeId": null,
+      "storeName": null,
+      "status": "unknown",
+      "statusRaw": "STATE_UNRECOGNIZED",
+      "isCompleted": false
+    },
+    {
+      "id": "ORD-***-006",
+      "createdAt": "2026-09-14T20:15:00+08:00",
+      "channel": "到店取餐",
+      "amount": 36.0,
+      "currency": "CNY",
+      "items": [{ "name": "巨无霸", "quantity": 1 }, { "name": "可乐", "quantity": 1 }],
+      "storeId": "ST-***-C3",
+      "storeName": "演示大道店",
+      "status": "completed",
+      "statusRaw": "已完成",
+      "isCompleted": true
+    },
+    {
+      "id": "ORD-***-007",
+      "createdAt": "2026-09-03T11:50:00+08:00",
+      "channel": "到店取餐",
+      "amount": 30.0,
+      "currency": "CNY",
+      "items": [{ "name": "原味板烧鸡腿堡", "quantity": 1 }],
+      "storeId": "ST-***-A1",
+      "storeName": "示例路店",
+      "status": "completed",
+      "statusRaw": "已完成",
+      "isCompleted": true
+    },
+    {
+      "id": "ORD-***-008",
+      "createdAt": "2026-08-25T17:40:00+08:00",
+      "channel": "麦乐送",
+      "amount": 47.5,
+      "currency": "CNY",
+      "items": [{ "name": "巨无霸", "quantity": 1 }, { "name": "麦辣鸡翅", "quantity": 2 }],
+      "storeId": "ST-***-C3",
+      "storeName": "演示大道店",
+      "status": "completed",
+      "statusRaw": "已完成",
+      "isCompleted": true
+    },
+    {
+      "id": "ORD-***-009",
+      "createdAt": "2026-08-11T12:08:00+08:00",
+      "channel": "到店取餐",
+      "amount": 33.0,
+      "currency": "CNY",
+      "items": [{ "name": "原味板烧鸡腿堡", "quantity": 1 }],
+      "storeId": "ST-***-A1",
+      "storeName": "示例路店",
+      "status": "completed",
+      "statusRaw": "已完成",
+      "isCompleted": true
+    },
+    {
+      "id": "ORD-***-010",
+      "createdAt": "2026-07-13T11:20:00+08:00",
+      "channel": "到店取餐",
+      "amount": 29.0,
+      "currency": "CNY",
+      "items": [{ "name": "巨无霸", "quantity": 1 }],
+      "storeId": "ST-***-B7",
+      "storeName": "样例街店",
+      "status": "completed",
+      "statusRaw": "已完成",
+      "isCompleted": true
+    }
+  ],
+  "stores": [
+    { "storeId": "ST-***-A1", "storeName": "示例路店", "orderCount": 5, "source": "order-list" },
+    { "storeId": "ST-***-B7", "storeName": "样例街店", "orderCount": 2, "source": "order-list" },
+    { "storeId": "ST-***-C3", "storeName": "演示大道店", "orderCount": 2, "source": "order-list" }
+  ],
+  "unknowns": [
+    {
+      "field": "orders[4].status",
+      "reason": "官方返回原始状态字符串 STATE_UNRECOGNIZED，无法映射到已知状态",
+      "impact": "该单不纳入已完成计数，在『状态未知』区域单独展示"
+    },
+    {
+      "field": "orders[4].amount",
+      "reason": "该记录未返回金额字段",
+      "impact": "金额留空，不推测"
+    }
+  ],
+  "warnings": []
+}

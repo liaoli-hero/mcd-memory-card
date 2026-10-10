@@ -1,0 +1,240 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.invalid/mcd-memory-card/normalized.v1.json",
+  "title": "麦门回忆卡 归一化数据模型 v1",
+  "description": "本项目自定义的中间数据格式。不是麦当劳官方格式，也不是对官方返回结构的假设。所有字段均来自对 MCP 工具实际返回的可验证解析；无法验证的一律标 unknown 并保留 rawNote。",
+  "type": "object",
+  "required": ["schemaVersion", "generatedAt", "coverage", "account", "coupons", "orders", "stores", "unknowns", "warnings"],
+  "additionalProperties": false,
+  "properties": {
+    "_sample": {
+      "type": "object",
+      "description": "仅用于样例文件的自描述块。真实数据文件不应包含此项；渲染器据此显示『示例数据』横幅。",
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "type": "string", "description": "样例类型，如 fictional-full / fictional-partial / fictional-empty" },
+        "notice": { "type": "string", "description": "面向使用者的样例说明，须写明为虚构数据" }
+      }
+    },
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0",
+      "description": "本模型的版本号。渲染器据此判断兼容性。"
+    },
+    "generatedAt": {
+      "type": "string",
+      "description": "本文件生成时间（ISO 8601，带时区偏移）。由生成方写入。"
+    },
+    "source": {
+      "type": "object",
+      "description": "本次取数的来源与工具清单，用于追溯。",
+      "additionalProperties": false,
+      "properties": {
+        "server": { "type": "string", "description": "MCP Server 地址，固定为 https://mcp.mcd.cn" },
+        "tools": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "本次实际成功调用的只读工具名列表"
+        },
+        "toolsFailed": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["tool", "reason"],
+            "properties": {
+              "tool": { "type": "string" },
+              "reason": { "type": "string", "description": "失败原因，如 401 / 429 / 空返回 / 解析失败" }
+            }
+          },
+          "description": "调用失败的工具及原因。渲染器据此展示『数据不可得』卡片。"
+        },
+        "writeToolsInvoked": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "必须恒为空数组。本项目不调用任何写工具。渲染器若发现非空则拒绝渲染。"
+        }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "description": "数据覆盖范围。每张卡都会重复展示该信息。",
+      "required": ["ordersStart", "ordersEnd", "orderCountFetched", "isComplete", "coverageNote"],
+      "additionalProperties": false,
+      "properties": {
+        "ordersStart": {
+          "type": ["string", "null"],
+          "description": "取回的订单记录中最早的时间（ISO 8601）。无法确定时为 null。"
+        },
+        "ordersEnd": {
+          "type": ["string", "null"],
+          "description": "取回的订单记录中最晚的时间（ISO 8601）。无法确定时为 null。"
+        },
+        "orderCountFetched": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "本次实际取回的订单记录条数（去重后）。"
+        },
+        "isComplete": {
+          "type": "string",
+          "enum": ["complete", "partial", "unknown"],
+          "description": "complete=确认已取全；partial=分页受限只取到部分；unknown=无法判断。禁止把 partial/unknown 说成全量。"
+        },
+        "pagesFetched": {
+          "type": ["integer", "null"],
+          "description": "实际取回的页数。分页能力未知时为 null。"
+        },
+        "coverageNote": {
+          "type": "string",
+          "description": "面向用户的覆盖范围说明原文，必须能显示在每张卡上。"
+        }
+      }
+    },
+    "account": {
+      "type": "object",
+      "description": "账户级数据，来自 query-my-account。",
+      "required": ["available", "status", "note"],
+      "additionalProperties": false,
+      "properties": {
+        "available": {
+          "type": ["integer", "null"],
+          "description": "可用积分。取不到为 null（渲染为『未知』，不是 0）。"
+        },
+        "accumulated": {
+          "type": ["integer", "null"],
+          "description": "累计积分。未知为 null。"
+        },
+        "frozen": {
+          "type": ["integer", "null"],
+          "description": "冻结积分。未知为 null。"
+        },
+        "expiringSoon": {
+          "type": ["integer", "null"],
+          "description": "即将过期积分。未知为 null。"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["ok", "unknown", "unavailable"],
+          "description": "ok=字段已确认解析；unknown=工具返回但字段含义无法确认；unavailable=调用失败或返回为空。"
+        },
+        "note": {
+          "type": "string",
+          "description": "补充说明，例如『未能从返回中确认字段名，数值以原文键名 X 解析』。"
+        }
+      }
+    },
+    "coupons": {
+      "type": "object",
+      "description": "券摘要，来自 query-my-coupons。仅做数量与分类摘要，不逐张罗列券码。",
+      "required": ["status", "totalCount", "note"],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["ok", "unknown", "unavailable"]
+        },
+        "totalCount": {
+          "type": ["integer", "null"],
+          "description": "当前可用券总数。未知为 null。"
+        },
+        "byCategory": {
+          "type": ["object", "null"],
+          "description": "按类别计数，键为类别名。类别名取自官方返回，不做臆造。未知为 null。",
+          "additionalProperties": { "type": "integer" }
+        },
+        "note": { "type": "string" }
+      }
+    },
+    "orders": {
+      "type": "array",
+      "description": "订单记录。每条都必须带可追溯的原始状态。",
+      "items": {
+        "type": "object",
+        "required": ["id", "status", "statusRaw", "isCompleted"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "脱敏后的订单标识。禁止写入完整真实订单号。"
+          },
+          "createdAt": {
+            "type": ["string", "null"],
+            "description": "下单时间（ISO 8601）。无法解析为 null。"
+          },
+          "channel": {
+            "type": ["string", "null"],
+            "description": "渠道，如外送/到店。取不到为 null。"
+          },
+          "amount": {
+            "type": ["number", "null"],
+            "description": "订单金额。仅作为核对字段保留，渲染器不用于展示或排行。"
+          },
+          "currency": { "type": ["string", "null"] },
+          "items": {
+            "type": ["array", "null"],
+            "description": "餐品明细。取不到为 null，不做推测。",
+            "items": {
+              "type": "object",
+              "required": ["name"],
+              "properties": {
+                "name": { "type": "string" },
+                "quantity": { "type": ["integer", "null"] }
+              }
+            }
+          },
+          "storeId": { "type": ["string", "null"] },
+          "storeName": { "type": ["string", "null"] },
+          "status": {
+            "type": "string",
+            "enum": ["completed", "cancelled", "refunded", "unknown"],
+            "description": "归一化状态。completed 才计入已完成订单数；cancelled/refunded 单列；无法确认一律 unknown。"
+          },
+          "statusRaw": {
+            "type": "string",
+            "description": "官方返回的原始状态字符串，原样保留以便追溯。不得改写。"
+          },
+          "isCompleted": {
+            "type": "boolean",
+            "description": "是否计入已完成订单。仅当 status === 'completed' 时为 true。"
+          }
+        }
+      }
+    },
+    "stores": {
+      "type": "array",
+      "description": "仅收录从订单记录中确认出现的门店。绝不能来自 query-nearby-stores（附近 ≠ 历史足迹）。",
+      "items": {
+        "type": "object",
+        "required": ["storeId", "orderCount"],
+        "additionalProperties": false,
+        "properties": {
+          "storeId": { "type": "string" },
+          "storeName": { "type": ["string", "null"] },
+          "orderCount": { "type": "integer", "minimum": 1 },
+          "source": {
+            "type": "string",
+            "const": "order-list",
+            "description": "固定为 order-list。用于保证门店来源可审计。"
+          }
+        }
+      }
+    },
+    "unknowns": {
+      "type": "array",
+      "description": "本次取数中所有无法确认的项目，显式列出而非静默丢弃。",
+      "items": {
+        "type": "object",
+        "required": ["field", "reason"],
+        "properties": {
+          "field": { "type": "string" },
+          "reason": { "type": "string" },
+          "impact": { "type": "string", "description": "该未知项对卡片展示的影响" }
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "面向用户的提示，例如『本次仅取回部分记录』。"
+    }
+  }
+}

@@ -1,0 +1,143 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-10-10T12:22:00+08:00",
+  "_sample": {
+    "kind": "fictional-partial",
+    "notice": "本文件为纯虚构样例（部分数据场景），用于演示分页受限、字段缺失、未知状态并存时的诚实展示。不包含任何真实账户数据。"
+  },
+  "source": {
+    "server": "https://mcp.mcd.cn",
+    "tools": ["query-my-account", "order-list"],
+    "toolsFailed": [{ "tool": "query-my-coupons", "reason": "429 触发限流，未重试" }],
+    "writeToolsInvoked": []
+  },
+  "coverage": {
+    "ordersStart": "2026-09-11T08:30:00+08:00",
+    "ordersEnd": "2026-10-10T09:15:00+08:00",
+    "orderCountFetched": 6,
+    "isComplete": "partial",
+    "pagesFetched": 1,
+    "coverageNote": "数据覆盖：2026-09-11 至 2026-10-10 · 仅取回 6 条记录（分页能力未确认，可能仍存在更早记录）"
+  },
+  "account": {
+    "available": null,
+    "accumulated": null,
+    "frozen": null,
+    "expiringSoon": null,
+    "status": "unknown",
+    "note": "工具返回了内容，但未能确认积分字段名，故全部标为未知，未填入 0。"
+  },
+  "coupons": {
+    "status": "unavailable",
+    "totalCount": null,
+    "byCategory": null,
+    "note": "query-my-coupons 调用失败（429），本次不展示券数据。"
+  },
+  "orders": [
+    {
+      "id": "ORD-***-101",
+      "createdAt": "2026-10-10T09:15:00+08:00",
+      "channel": "到店取餐",
+      "amount": 31.0,
+      "currency": "CNY",
+      "items": null,
+      "storeId": null,
+      "storeName": null,
+      "status": "completed",
+      "statusRaw": "COMPLETED",
+      "isCompleted": true
+    },
+    {
+      "id": "ORD-***-102",
+      "createdAt": "2026-10-04T19:22:00+08:00",
+      "channel": "到店取餐",
+      "amount": 29.5,
+      "currency": "CNY",
+      "items": null,
+      "storeId": null,
+      "storeName": null,
+      "status": "completed",
+      "statusRaw": "COMPLETED",
+      "isCompleted": true
+    },
+    {
+      "id": "ORD-***-103",
+      "createdAt": "2026-09-29T12:03:00+08:00",
+      "channel": null,
+      "amount": null,
+      "currency": null,
+      "items": null,
+      "storeId": null,
+      "storeName": null,
+      "status": "unknown",
+      "statusRaw": "",
+      "isCompleted": false
+    },
+    {
+      "id": "ORD-***-104",
+      "createdAt": "2026-09-20T18:40:00+08:00",
+      "channel": "到店取餐",
+      "amount": 26.0,
+      "currency": "CNY",
+      "items": null,
+      "storeId": null,
+      "storeName": null,
+      "status": "cancelled",
+      "statusRaw": "CANCELLED",
+      "isCompleted": false
+    },
+    {
+      "id": "ORD-***-105",
+      "createdAt": "2026-09-15T07:55:00+08:00",
+      "channel": "到店取餐",
+      "amount": 22.0,
+      "currency": "CNY",
+      "items": null,
+      "storeId": null,
+      "storeName": null,
+      "status": "completed",
+      "statusRaw": "COMPLETED",
+      "isCompleted": true
+    },
+    {
+      "id": "ORD-***-106",
+      "createdAt": "2026-09-11T08:30:00+08:00",
+      "channel": null,
+      "amount": null,
+      "currency": null,
+      "items": null,
+      "storeId": null,
+      "storeName": null,
+      "status": "refunded",
+      "statusRaw": "REFUNDED",
+      "isCompleted": false
+    }
+  ],
+  "stores": [],
+  "unknowns": [
+    {
+      "field": "orders[*].storeName",
+      "reason": "本次 order-list 返回中未包含门店字段",
+      "impact": "不生成门店足迹卡（绝不改用附近门店代替）"
+    },
+    {
+      "field": "orders[*].items",
+      "reason": "本次返回中未包含餐品明细",
+      "impact": "不生成常点餐品卡"
+    },
+    {
+      "field": "account.*",
+      "reason": "无法确认积分字段名",
+      "impact": "积分卡显示『未知』而非 0"
+    },
+    {
+      "field": "coverage.isComplete",
+      "reason": "无法确认分页上限，可能只取回第一页",
+      "impact": "覆盖说明标注为『部分数据』"
+    }
+  ],
+  "warnings": [
+    "本次仅取回部分订单记录（1 页），实际历史可能更长。",
+    "券数据本次不可用。"
+  ]
+}

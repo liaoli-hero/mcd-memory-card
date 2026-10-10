@@ -1,0 +1,18 @@
+{
+  "_comment": [
+    "脱敏后的 MCP 配置示例。",
+    "本文件中的 Token 一律使用环境变量占位符，严禁写入任何真实 Token。",
+    "使用时请把 MCD_MCP_TOKEN 换成你自己的环境变量名，并在系统环境变量中设置真实值。",
+    "接入地址：https://mcp.mcd.cn ，传输协议：Streamable HTTP。",
+    "Token 申请地址：https://open.mcd.cn/mcp"
+  ],
+  "mcpServers": {
+    "mcd-mcp": {
+      "type": "streamablehttp",
+      "url": "https://mcp.mcd.cn",
+      "headers": {
+        "Authorization": "Bearer ${MCD_MCP_TOKEN}"
+      }
+    }
+  }
+}

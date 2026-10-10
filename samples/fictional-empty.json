@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-10-10T12:21:00+08:00",
+  "_sample": {
+    "kind": "fictional-empty",
+    "notice": "本文件为纯虚构样例（空数据场景），用于演示渲染器的兜底表现。不包含任何真实账户数据。"
+  },
+  "source": {
+    "server": "https://mcp.mcd.cn",
+    "tools": ["query-my-account"],
+    "toolsFailed": [
+      { "tool": "order-list", "reason": "返回空列表" },
+      { "tool": "query-my-coupons", "reason": "返回空列表" }
+    ],
+    "writeToolsInvoked": []
+  },
+  "coverage": {
+    "ordersStart": null,
+    "ordersEnd": null,
+    "orderCountFetched": 0,
+    "isComplete": "unknown",
+    "pagesFetched": null,
+    "coverageNote": "未能取回任何订单记录，无法确定覆盖范围"
+  },
+  "account": {
+    "available": 0,
+    "accumulated": 0,
+    "frozen": null,
+    "expiringSoon": null,
+    "status": "ok",
+    "note": "账户积分为 0，已由 query-my-account 确认。"
+  },
+  "coupons": {
+    "status": "unavailable",
+    "totalCount": null,
+    "byCategory": null,
+    "note": "query-my-coupons 未返回可用券。"
+  },
+  "orders": [],
+  "stores": [],
+  "unknowns": [
+    {
+      "field": "coverage.ordersStart",
+      "reason": "订单列表为空，没有可用于推断时间范围的记录",
+      "impact": "不展示订单与门店相关卡片"
+    }
+  ],
+  "warnings": [
+    "本次未取回任何订单记录。订单相关内容只说明「数据不可得」，不展示明细，也不做任何猜测。"
+  ]
+}
