@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>麦门回忆卡 · mcd-memory-card</title>
+<title>麦门回忆卡 · 订单、积分与优惠券的诚实回顾</title>
+<meta name="description" content="用几张卡片回顾麦当劳订单、积分与优惠券。无需登录即可体验虚构示例；每张卡标注范围，未知不填零。">
 <style>
   :root{
     --bg:#f5f2ec;
@@ -39,6 +40,10 @@
   .brand small{color:var(--ink3);font-size:12px;letter-spacing:.4px}
   .sub{color:var(--ink2);font-size:13px;margin:8px 0 0}
 
+  .try-note{font-size:13px;color:var(--ink2);margin:12px 0 0;padding-left:12px;border-left:3px solid var(--accent)}
+  .try-note b{color:var(--ink)}
+  button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+  @media (prefers-reduced-motion:reduce){.card{animation:none}button{transition:none}}
   .modebar{
     display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 6px;
   }
@@ -133,7 +138,7 @@
   }
   @media print{
     body{background:#fff;padding:0}
-    .modebar,header.top .sub,footer .noprint{display:none}
+    .modebar,.try-note,header.top .sub,footer .noprint{display:none}
     .card{box-shadow:none;border:1px solid var(--line);break-inside:avoid;animation:none}
     .banner{border:1px solid var(--line)}
     .banner.demo{-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -148,26 +153,29 @@
       <h1>麦门回忆卡</h1>
       <small>mcd-memory-card</small>
     </div>
-    <p class="sub">把你的麦当劳记录整理成几张卡片。每张都写清数据覆盖到哪，不确定的地方直接写「未知」。</p>
+    <p class="sub">订单、积分、优惠券，整理成几张回忆卡。每张都写清范围，未知就写「未知」。</p>
   </header>
 
-  <div class="modebar">
-    <button id="btnDemoFull" class="on">示例数据 · 完整</button>
-    <button id="btnDemoPartial">示例数据 · 部分</button>
-    <button id="btnDemoEmpty">示例数据 · 空</button>
-    <button id="btnImport">导入 JSON</button>
-    <button id="btnPrint">打印卡片</button>
-    <button id="btnClear">清除导入</button>
+  <p class="try-note"><b>先看虚构示例，无需账号或 Token。</b>切换三种场景，看看数据齐、数据缺、没记录时分别怎么呈现。</p>
+  <div class="modebar" role="group" aria-label="切换虚构演示场景">
+    <button id="btnDemoFull" class="on" aria-pressed="true">虚构示例 · 信息较齐</button>
+    <button id="btnDemoPartial" aria-pressed="false">虚构示例 · 部分缺失</button>
+    <button id="btnDemoEmpty" aria-pressed="false">虚构示例 · 无订单记录</button>
+  </div>
+  <div class="modebar" role="group" aria-label="本地文件与打印">
+    <button id="btnImport">导入本地 JSON</button>
+    <button id="btnPrint">打印 / 保存 PDF</button>
+    <button id="btnClear">清空当前展示</button>
   </div>
 
   <input type="file" id="fileInput" accept=".json,application/json" style="display:none">
 
-  <div id="banners"></div>
+  <div id="banners" role="status" aria-live="polite"></div>
   <div id="stage"></div>
 
   <footer>
     <div class="noprint">
-      <div>本页面为纯静态单文件，<b>不联网、不上传、不存储任何令牌</b>，不直接连接麦当劳服务。</div>
+      <div>本页只展示数据，<b>不上传导入文件、不存储令牌、不连接麦当劳服务</b>。在线或本地服务器模式下，仅从同一站点读取演示 JSON。</div>
       <div>页面上方三种示例均为虚构数据。你的真实数据，需要在 WorkBuddy 里连上麦当劳后由 Skill 取回，导出成 JSON 再从这里导入。</div>
       <div style="margin-top:6px">数据口径：订单 ≠ 摄入；消费记录 ≠ 完整历史。卡片仅依据实际取回的记录陈述。</div>
     </div>
@@ -187,7 +195,7 @@
        3. 已取消 / 已退款 不计入已完成订单；未知状态单列。
        4. 每张卡都重复展示覆盖范围。
        5. 门店只来自 order-list，绝不使用「附近门店」。
-     本文件不含任何写操作、不含任何网络请求。
+     本文件不含任何业务写操作；仅从同一站点加载虚构样例，不请求麦当劳服务。
      ============================================================ */
 
   var SAMPLES = {
@@ -631,7 +639,7 @@
     var isSample = !!(data._sample || (modeLabel && modeLabel.indexOf("示例") === 0));
     if (isSample){
       var d = el("div", "banner demo");
-      d.textContent = "示例数据 · 非真实账户 —— 本页当前展示的是虚构样例，用于演示渲染效果。";
+      d.textContent = "示例数据 · 非真实账户 —— 全部为虚构演示，不代表官方可取回的历史范围或接口能力。";
       banners.appendChild(d);
     } else if (modeLabel){
       var d2 = el("div", "banner");
@@ -860,7 +868,7 @@
         // file:// 下 fetch 常被拦截 —— 退回内嵌兜底样例
         render(INLINE[key], "示例数据");
         var b = el("div", "banner");
-        b.textContent = "提示：本地直接打开时无法读取 samples/ 目录，已自动使用内嵌的等价样例（内容相同，纯虚构）。"
+        b.textContent = "提示：无法读取 samples/ 样例文件，已使用内嵌虚构样例（部分说明与明细经过精简）。"
           + "如需加载完整样例文件，请用本地静态服务器打开本页。";
         banners.appendChild(b);
       });
@@ -870,7 +878,7 @@
     stage.textContent = "";
     banners.textContent = "";
     var b = el("div", "banner");
-    b.textContent = "已清除。可以点上方「示例数据」看演示，或点「导入 JSON」加载你自己的数据。";
+    b.textContent = "已清除当前展示。可以切换上方虚构示例，或导入本地 JSON；原文件不会被删除。";
     banners.appendChild(b);
     setActive(null);
   }
@@ -878,8 +886,12 @@
   function setActive(which){
     ["btnDemoFull","btnDemoPartial","btnDemoEmpty"].forEach(function(id){ 
       document.getElementById(id).classList.remove("on");
+      document.getElementById(id).setAttribute("aria-pressed", "false");
     });
-    if (which) document.getElementById(which).classList.add("on");
+    if (which){
+      document.getElementById(which).classList.add("on");
+      document.getElementById(which).setAttribute("aria-pressed", "true");
+    }
   }
 
   /* ---------- 事件绑定 ---------- */
@@ -937,7 +949,7 @@
   });
 
   /* ---------- 启动 ---------- */
-  // 若 URL 带 ?data=<相对路径>，可加载任意样例；否则默认完整示例。
+  // URL 仅接受 ?data=full / partial / empty；否则默认信息较齐的虚构示例。
   var qs = new URLSearchParams(location.search);
   var want = qs.get("data");
   if (want === "full" || want === "partial" || want === "empty"){

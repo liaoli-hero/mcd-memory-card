@@ -1,222 +1,128 @@
 # 麦门回忆卡 · mcd-memory-card
 
-> 把你在麦当劳的订单记录，整理成一组**只陈述事实**的回忆卡片。
-> 数据范围逐卡标注，不确定的一律显示为「未知」。
+**把麦当劳订单、积分与优惠券，整理成几张有据可查的回忆卡。**
 
-麦当劳程序员创意开发大赛参赛作品。基于麦当劳中国官方 MCP 的**只读**能力构建。
+看得见当前状态，也看得见数据的边界：每张卡标注范围，未知就写「未知」，取消和退款单独统计。
 
----
+**[下载后立即试玩](https://github.com/liaoli-hero/mcd-memory-card/archive/refs/heads/main.zip)** · [三步打开演示](#三步打开演示) · [接入自己的数据](#接入自己的数据) · [数据口径与限制](#数据口径与限制)
 
-## 它解决什么问题
+> 先体验，再配置：演示无需登录、无需 Token、无需安装技能。下方截图与内置三套示例均为**纯虚构数据**，不来自任何真实账户，也不代表官方接口可取得完整历史。
 
-麦当劳的历史订单、积分、优惠券分散在 App 各处，用户很难一眼看清"我最近是什么状态"。
-现有点餐助手几乎都在做同一件事：**帮你点单**。
+<img src="docs/images/demo-full.png" alt="纯虚构演示：积分与优惠券摘要，以及已完成、取消、退款、未知状态分列的订单概览；每张卡附带数据范围。" width="640">
 
-麦门回忆卡做的是另一件事：**帮你诚实回顾**。
+*实际浏览器截图，使用 `samples/fictional-full.json`。所有数值、订单和门店均为虚构。*
 
-它的核心主张是**克制**——宁可少说一句，不说过头一句：
+## 可以用它做什么
 
-| 常见做法 | 本项目的做法 |
+- **看当前状态**：把可用积分、即将过期的积分、可用券数量放在一起。
+- **回顾已取回的订单**：区分已完成、取消、退款与状态未知；门店记录只来自订单。
+- **保存一份回忆**：浏览器打印或保存为 PDF，也可截图留档。分享前检查并遮去个人信息。
+
+适合想回顾近期记录的麦当劳用户，也适合研究 MCP 只读汇总与数据缺失处理的开发者。
+
+## 三步打开演示
+
+1. **[下载项目 ZIP](https://github.com/liaoli-hero/mcd-memory-card/archive/refs/heads/main.zip)**，先解压。
+2. 双击解压后根目录的 **`index.html`**，用浏览器打开。
+3. 页面默认展示虚构示例。切换 **「信息较齐 / 部分缺失 / 无订单记录」**，观察卡片如何处理不同情况。
+
+这条试玩路径只需浏览器。文件直接打开时若读不到 `samples/`，页面会使用内嵌的精简虚构样例；部分说明与明细可能不同，不影响体验三种场景。
+
+已有 Git 和 Python，也可以在本地服务器中打开完整样例文件：
+
+```bash
+git clone https://github.com/liaoli-hero/mcd-memory-card.git
+cd mcd-memory-card
+python -m http.server 8000 --bind 127.0.0.1
+```
+
+再打开 [http://127.0.0.1:8000/](http://127.0.0.1:8000/)。可用 `?data=full`、`?data=partial` 或 `?data=empty` 直接选择演示场景。
+
+> GitHub 文件页只显示源码，不能直接运行 HTML。若浏览器打印菜单提供「另存为 PDF」，选择后即可保存；本项目没有单独的一键 PNG 导出功能。
+
+## 三种场景，都把边界写清楚
+
+| 虚构场景 | 可以留意的细节 | 示例文件 |
+|---|---|---|
+| 信息较齐 | 10 条记录中，7 条已完成、1 条取消、1 条退款、1 条状态未知；分开呈现 | [fictional-full.json](samples/fictional-full.json) |
+| 部分缺失 | 积分字段无法确认时显示「未知」；券不可用；6 条记录不代表完整历史 | [fictional-partial.json](samples/fictional-partial.json) |
+| 无订单记录 | 已确认的积分 0 与未知值同时存在；没有订单记录时不推断历史消费 | [fictional-empty.json](samples/fictional-empty.json) |
+
+<details>
+<summary>查看部分缺失与无订单记录的界面（均为纯虚构）</summary>
+
+| 部分缺失 · 纯虚构 | 无订单记录 · 纯虚构 |
 |---|---|
-| "你今年吃掉了 47 个巨无霸！" | 只展示**实际取回区间内**的记录条数 |
-| "你摄入了 82,000 千卡" | 不输出任何摄入量结论（订单 ≠ 摄入） |
-| "你常去的门店有 5 家"（其实是附近门店） | 门店**只能来自订单记录**，附近门店不算足迹 |
-| 把取消、退款的订单也算进总数 | 取消/退款**独立统计**，不计入已完成 |
-| 状态识别不了就当成"已完成" | 无法确认的一律标 **「状态未知」** 并单列 |
+| <img src="docs/images/demo-partial.png" alt="部分缺失的虚构演示：积分显示未知，券数据不可得，并提示仅取回部分记录。" width="360"> | <img src="docs/images/demo-empty.png" alt="无订单记录的虚构演示：可用积分为已确认的0，冻结与即将过期积分为未知，没有记录不等于没有历史消费。" width="360"> |
 
-**降级路径本身就是设计的一部分。** 数据稀缺时它诚实地缩小范围，数据完全拿不到时它依然可用且依然不说谎。
+</details>
 
----
+这些截图用于说明产品行为，**不是 MCP 真实调用的证明**。示例中的状态映射、时间跨度和分页数都是演示设定。
 
-## 目标用户
+## 接入自己的数据
 
-- 想知道自己近期在麦当劳的消费/积分状态，但不想翻 App 的用户；
-- 在意数据诚实性、反感"AI 一本正经胡说"的用户；
-- 想生成一张可截图分享的卡片，用于社交平台记录。
+演示页与真实取数是两个步骤：**WorkBuddy + 麦当劳 MCP 负责只读取数，网页负责展示归一化 JSON。** 在网页中导入文件不会连接或验证麦当劳账户。
 
----
+1. 从 [麦当劳 MCP 平台](https://open.mcd.cn/mcp) 申请自己的 Token，按 [MCP 接入说明](MCP_INTEGRATION.md) 配置 WorkBuddy 连接器。
+2. 下载仓库中的 [mcd-memory-card-skill.zip](https://github.com/liaoli-hero/mcd-memory-card/raw/refs/heads/main/mcd-memory-card-skill.zip)。在 WorkBuddy 的技能管理中选择添加 / 上传技能并导入；具体入口以当前客户端为准。也可参考 [WorkBuddy 技能文档](https://open.workbuddy.cn/docs/skill)。**导入技能包不等于已配置 MCP 连接器。**
+3. 在 WorkBuddy 对话中请求：
 
-## 安装方法
+   > 帮我生成我的麦门回忆卡。只使用只读工具，按实际返回归一化；逐卡标注范围，无法确认的字段写未知，不推断完整历史或食用量。
 
-### 方式一：导入技能包（推荐）
+4. 获得符合 [数据格式](schema/normalized.schema.json) 的 JSON 后，在 `index.html` 点击 **「导入本地 JSON」**。不要把 Token 或原始敏感响应放进文件。
 
-本项目已打包为可直接导入的技能包：
+网页在浏览器内解析导入文件，不上传文件、不存储令牌、不直接连接麦当劳服务。使用 HTTP 打开页面时，会从同一站点读取虚构演示 JSON；双击文件时可使用内嵌示例。
 
-```
-mcd-memory-card-skill.zip
-```
+### 可选：生成静态卡片页
 
-导入步骤（依据 WorkBuddy 官方文档）：
-
-1. 打开 WorkBuddy，点击左侧边栏【专家·技能·连接器】→ 选择【技能】，进入技能市场；
-2. 点击市场右上角【添加技能】；
-3. 选择【上传技能】，把 `mcd-memory-card-skill.zip` 拖入或点击【选择文件】选中；
-4. 导入后系统会自动完成配置，无需额外操作。
-
-安装后可在对话中调用。必要时可在【已安装】列表中随时关闭或重新启用，**无需卸载**。
-
-参考文档：
-- 技能市场与安装：https://www.workbuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Skills-Market
-- 技能结构与 frontmatter 规范：https://open.workbuddy.cn/docs/skill
-
-> ⚠️ 本仓库仅**提供**技能包，**不代为安装或上传**。是否安装请自行决定，安装第三方技能前建议先核对权限与脚本内容。
-
-### 技能包内部结构
-
-ZIP 顶层目录为技能名，`SKILL.md` 位于其根部：
-
-```
-mcd-memory-card/
-├── SKILL.md                      # 技能定义（YAML frontmatter + 指令正文）
-├── references/
-│   └── normalized.schema.json    # 数据格式定义
-├── scripts/
-│   ├── index.html                # 单文件网页渲染器
-│   └── render.py                 # 本地静态渲染脚本
-└── templates/
-    ├── fictional-full.json       # 样例：数据完整（纯虚构）
-    ├── fictional-partial.json    # 样例：数据部分（纯虚构）
-    └── fictional-empty.json      # 样例：数据为空（纯虚构）
-```
-
-### 方式二：直接使用渲染器（不需要 MCP）
-
-本项目的 `index.html` 是一个**零依赖单文件**，可脱离技能独立演示：
-
-- 双击 `index.html` 即可在浏览器打开；
-- 内置三种**纯虚构示例数据**（完整 / 部分 / 空）；
-- 可导入任意符合 `schema/normalized.schema.json` 的 JSON。
-
-此外，`renderer/render.py` 可把归一化 JSON 生成**静态卡片页**。版式上做了区分：
-普通页面只突出**积分、券和订单数据可用性提示**；
-**字段名、MCP 工具名、数据覆盖表格与未知项清单**等工程说明，折叠在页面底部的
-「查看数据说明」中，需要时再展开。没有订单数据时，订单/状态/门店三张空卡会合并为一条简洁提示，
-但每张卡仍保留数据范围说明；**未知项一律显示为「未知」，不以 0 代替**。
-
-### 前置条件（仅真实取数时需要）
-
-- WorkBuddy 已配置麦当劳 MCP 连接器（详见 `MCP_INTEGRATION.md`）；
-- 需要用户自行到 https://open.mcd.cn/mcp 申请 MCP Token；
-- 本项目已在本机完成一次真实只读接入验证，结论见 `MCP_INTEGRATION.md` 第 5 节。
-
----
-
-## 使用示例
-
-### 示例 1：在 WorkBuddy 里生成回忆卡
-
-```
-用户：帮我生成我的麦门回忆卡
-Skill：依次调用 query-my-account、order-list、query-my-coupons（只读），
-       观察真实返回结构 → 归一化 → 输出卡片
-```
-
-### 示例 2：本地查看演示
-
-打开 `index.html` → 点击「示例数据 · 完整 / 部分 / 空」查看三种场景。
-
-### 示例 3：本地渲染静态卡片页
+有 Python 3 时，可使用仅依赖标准库的渲染器：
 
 ```bash
 python renderer/render.py samples/fictional-full.json -o out.html
 ```
 
-### 示例 4：导入自己归一化后的数据
+打开生成的 `out.html` 即可查看、截图或打印。展示自己的数据时，将输入文件替换为本地归一化 JSON。静态渲染器不联网，不负责调用 MCP。
 
-```bash
-# 先在 WorkBuddy 内归一化得到 my-card.json
-python renderer/render.py my-card.json -o my-card.html
-```
+## 数据口径与限制
 
----
+| 问题 | 本项目的处理 |
+|---|---|
+| 数据没取到，能按 0 展示吗？ | 不能。未知显示「未知」；只有已确认的 0 才显示 0。 |
+| 取消、退款或未知状态算已完成吗？ | 不算。分别统计；无法识别的状态不猜测。 |
+| 能生成「全年吃了多少」吗？ | 不作此承诺。订单不等于食用量，也不据此推断热量或营养。 |
+| 查到附近门店，能算历史足迹吗？ | 不能。门店记录只来自实际订单数据。 |
+| 卡片代表完整历史吗？ | 只代表本次实际取得的数据；逐卡说明覆盖范围与完整性。 |
+| 能下单、兑换或领券吗？ | 本 Skill 仅使用三个只读工具，不提供这些写操作。 |
 
-## 项目结构
+### 真实接入验证到哪一步
 
-```
-mcd-memory-card/                       ← 仓库根目录
-├── mcd-memory-card-skill.zip          # 可直接导入 WorkBuddy 的技能包
-├── skill/                             # 技能包源目录（ZIP 的内容来源）
-│   ├── SKILL.md
-│   ├── references/normalized.schema.json
-│   ├── scripts/index.html
-│   ├── scripts/render.py
-│   └── templates/fictional-*.json
-├── index.html                         # 零依赖单文件渲染器（演示/导入/打印）
-├── renderer/
-│   ├── render.py                      # 本地静态卡片渲染脚本（仅标准库）
-│   ├── selftest.py                    # Python 侧自测（97 项）
-│   ├── browser_check.py               # 浏览器侧自测（CDP，需本机 Edge）
-│   └── skill_pack_check.py            # 技能打包一致性校验（33 项，零依赖）
-├── schema/
-│   └── normalized.schema.json         # 数据格式定义（本项目自定义）
-├── samples/
-│   ├── fictional-full.json            # 样例：数据完整（纯虚构）
-│   ├── fictional-partial.json         # 样例：数据部分（纯虚构）
-│   └── fictional-empty.json           # 样例：数据为空（纯虚构）
-├── docs/
-│   └── 麦当劳开发大赛_第一阶段调研报告.md
-├── MCP_INTEGRATION.md                 # MCP 接入说明
-├── mcp-config.example.json            # 脱敏配置示例（仅环境变量占位符）
-├── CONTEST_DECLARATION.md             # 参赛声明（官方原版，未修改）
-├── workbuddy.md                       # WorkBuddy 开发对话记录
-└── README.md                          # 本文件
-```
+仓库 [2026-10-10 接入记录](MCP_INTEGRATION.md#5--真实接入验证结果2026-10-10-实测) 记载：通过 WorkBuddy 调用了 `query-my-account`、`order-list` 和 `query-my-coupons`，未调用写工具。
 
----
+- 账户工具返回 JSON，券工具返回 Markdown；券分页已记录实测结果。
+- 订单工具调用成功，但返回的 `data` 是空对象，**没有取得真实订单样本**。
+- 真实订单状态枚举、时间格式与时区、查询时间窗口、订单分页能力仍未确认。
 
-## 数据口径声明
+因此，演示里的完整订单卡与门店卡展示的是渲染能力；不能据此宣称真实订单流程已全部验证。以上为仓库已有记录，本次展示改版没有重新调用真实账户。
 
-本项目在数据表述上遵守以下约束，**这些约束在代码中同样被强制执行**：
+## 开发与贡献
 
-1. **订单数 ≠ 食用数。** 订单可能被取消、退款，也可能是代下单或分享。本项目只统计状态为「已完成」的记录。
-2. **订单 ≠ 摄入。** 本项目**不输出任何热量或营养结论**。
-3. **消费记录 ≠ 完整历史。** 官方未定义订单查询的时间窗口，因此所有卡片都随附实际覆盖范围。
-4. **附近门店 ≠ 历史足迹。** 门店只能来自订单记录。
-5. **未知就是未知。** 无法确认的字段显示为「未知」，绝不填 0、绝不当成已知。
+| 文件 | 用途 |
+|---|---|
+| [index.html](index.html) | 单文件演示、JSON 导入与浏览器打印 |
+| [samples/](samples/) / [schema/](schema/) | 三套虚构数据与归一化格式 |
+| [SKILL.md](SKILL.md) / [skill/](skill/) | 技能说明与可打包源文件 |
+| [renderer/](renderer/) | 静态渲染器及现有校验脚本 |
+| [MCP_INTEGRATION.md](MCP_INTEGRATION.md) | MCP 工具、流程、历史接入证据与限制 |
+| [mcp-config.example.json](mcp-config.example.json) | 仅含环境变量占位符的配置示例 |
+| [workbuddy.md](workbuddy.md) | 脱敏开发记录 |
+| [截图方案](docs/SCREENSHOT_PLAN.md) | 截图来源、构图与复拍步骤 |
 
----
+欢迎在 [Issue](https://github.com/liaoli-hero/mcd-memory-card/issues) 反馈复现步骤或改进建议。请使用虚构数据，勿提交 Token、券码、真实订单号或账户信息。喜欢或觉得有用，可自愿 Star 收藏；不提供任何交换或奖励。
 
-## 真实接入状态
+## 参赛与许可
 
-**已完成真实只读接入验证（2026-10-10）。** 通过 WorkBuddy 已配置的 `mcd-mcp` 连接器实际调用三个白名单工具：
+本作品参加麦当劳程序员创意开发大赛，[参赛 Issue #332](https://github.com/M-China/mcd-developer-innovation-challenge/issues/332) 已收到官方成功参赛回复。报名确认不代表获奖或官方产品背书。我们遵守 [活动规则](https://github.com/M-China/mcd-developer-innovation-challenge/blob/main/activityGuidelines.md)，不采用购买、互刷、奖励换 Star 或骚扰式推广。
 
-| Tool | 结果 | 返回形态 |
-|---|---|---|
-| `query-my-account` | 成功 | JSON，字段已实测确认 |
-| `order-list` | 成功 | JSON，`data` 为空对象（无订单记录） |
-| `query-my-coupons` | 成功 | Markdown 文本（非 JSON），分页实测生效 |
+作者：[@liaoli-hero](https://github.com/liaoli-hero)。使用 WorkBuddy 与 Codex 辅助开发，记录见 [workbuddy.md](workbuddy.md)。源码采用 [MIT License](LICENSE)，[参赛声明](CONTEST_DECLARATION.md) 保留官方原文。
 
-**未调用任何写工具。** 字段映射、分页结论与仍未确认项详见 `MCP_INTEGRATION.md` 第 5 节。
-
----
-
-## 已知限制
-
-- **订单样本仍为零。** 本次 `order-list` 调用成功但未返回任何订单记录，因此 `orderStatus` 的取值枚举、`createTime` 的格式与时区、乃至**时间窗口长度**仍属**未确认**。这些项已如实登记进归一化数据的 `unknowns`，**不做猜测**。
-- **`order-list` 的实际时间窗口未知。** 官方 README 仅描述为「近期」，未给出天数；该工具入参为空，无法通过参数探测。作品覆盖范围会自动适配实际返回。
-- **`order-list` 分页能力未知。** 工具未暴露任何分页参数，且无数据可验证；因此无法确认时，覆盖说明标注为「部分数据」或「无法判断」，**不得写成全量**。
-- **本项目不做写操作。** 不提供下单、兑换、领券、抽奖等任何功能，代码层已拦截。
-- **公开材料不含任何个人数据。** 真实数值、门店名、账户标识仅存在于本机私有目录，不进入本仓库、样例、ZIP 或开发记录。
-
----
-
-## 作者与开源许可
-
-项目地址：https://github.com/liaoli-hero/mcd-memory-card
-
-作者：[@liaoli-hero](https://github.com/liaoli-hero)。开发过程中使用 WorkBuddy 与 Codex 辅助，分工及记录见 [workbuddy.md](workbuddy.md)。
-
-源码采用 [MIT License](LICENSE)。麦当劳商标、品牌名称及第三方素材的权利归其权利人所有。
-
-## 参与贡献
-
-本项目为参赛作品，欢迎通过 Issue 反馈问题（**请勿提交任何真实账户数据、Token 或订单号**）。
-
----
-
-## 声明
-
-本作品为麦当劳程序员创意开发大赛参赛作品，由参赛者独立开发，**非麦当劳官方产品**。
-项目输出仅供参考，不构成医疗、营养或其他专业建议；餐品信息、价格及供应状态以麦当劳官方渠道的实时结果为准。
-
-© 2026 参赛者。本项目不构成对麦当劳及其关联方商标的任何授权。
+本项目**非麦当劳官方产品**。品牌名称、商标及第三方素材的权利归各自权利人所有；输出不构成医疗或营养建议，业务信息以官方渠道为准。
