@@ -4,7 +4,7 @@
 
 看得见当前状态，也看得见数据的边界：每张卡标注范围，未知就写「未知」，取消和退款单独统计。
 
-**[下载后立即试玩](https://github.com/liaoli-hero/mcd-memory-card/archive/refs/heads/main.zip)** · [三步打开演示](#三步打开演示) · [接入自己的数据](#接入自己的数据) · [数据口径与限制](#数据口径与限制)
+**[立即在线试玩（虚构数据，无需登录）](https://liaoli-hero.github.io/mcd-memory-card/)** · [下载离线版](https://github.com/liaoli-hero/mcd-memory-card/archive/refs/heads/main.zip) · [接入自己的数据](#接入自己的数据) · [数据口径与限制](#数据口径与限制)
 
 > 先体验，再配置：演示无需登录、无需 Token、无需安装技能。下方截图与内置三套示例均为**纯虚构数据**，不来自任何真实账户，也不代表官方接口可取得完整历史。
 
@@ -21,6 +21,8 @@
 适合想回顾近期记录的麦当劳用户，也适合研究 MCP 只读汇总与数据缺失处理的开发者。
 
 ## 三步打开演示
+
+直接访问 **[在线试玩](https://liaoli-hero.github.io/mcd-memory-card/)** 即可切换三种虚构场景。想离线保存，按以下三步操作：
 
 1. **[下载项目 ZIP](https://github.com/liaoli-hero/mcd-memory-card/archive/refs/heads/main.zip)**，先解压。
 2. 双击解压后根目录的 **`index.html`**，用浏览器打开。
@@ -126,3 +128,4 @@ python renderer/render.py samples/fictional-full.json -o out.html
 作者：[@liaoli-hero](https://github.com/liaoli-hero)。使用 WorkBuddy 与 Codex 辅助开发，记录见 [workbuddy.md](workbuddy.md)。源码采用 [MIT License](LICENSE)，[参赛声明](CONTEST_DECLARATION.md) 保留官方原文。
 
 本项目**非麦当劳官方产品**。品牌名称、商标及第三方素材的权利归各自权利人所有；输出不构成医疗或营养建议，业务信息以官方渠道为准。
+
